@@ -1,0 +1,14 @@
+{
+  "name": "outils-site-marianne-marti",
+  "private": true,
+  "type": "module",
+  "description": "Lit le classeur Excel et convertit les scans. Le site lui-même n'a aucune dépendance.",
+  "scripts": {
+    "ingest": "node ingest.mjs",
+    "donnees": "node ingest.mjs --donnees"
+  },
+  "dependencies": {
+    "fflate": "0.8.3",
+    "sharp": "0.35.3"
+  }
+}

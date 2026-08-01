@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Marianne Marti-Billaudot — peintures, dessins et photographies</title>
+    <meta
+      name="description"
+      content="236 œuvres réunies en 39 collections, de 1993 à 2024 : huile sur toile, tondeau de broderie, dessin, aquarelle et photographie."
+    />
+    <meta name="theme-color" content="#ece4d3" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:title" content="Marianne Marti-Billaudot" />
+    <meta
+      property="og:description"
+      content="236 œuvres réunies en 39 collections, de 1993 à 2024."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Archivo:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- Le rideau d'entrée est en dur : il s'affiche avant même que le
+         JavaScript ne soit chargé, et se lève tout seul en CSS. -->
+    <div class="intro" aria-hidden="true">
+      <div>
+        <div class="mono">Une exposition</div>
+        <div class="nom">Marianne Marti-Billaudot</div>
+        <div class="trait"></div>
+      </div>
+    </div>
+
+    <!-- Tout le mur est construit ici par mur.js à partir de data.json. -->
+    <div id="site"></div>
+
+    <noscript>
+      <p style="padding: 12vh 8vw; font-size: 18px; line-height: 1.6">
+        Ce site présente les œuvres sur une cimaise que l’on fait défiler,
+        et a besoin de JavaScript pour fonctionner.
+        Pour toute demande, écrivez à l’adresse indiquée en fin de page.
+      </p>
+    </noscript>
+
+    <!-- Trois scripts simples, dans cet ordre. Rien à compiler. -->
+    <script src="data.js"></script>
+    <script src="textes.js"></script>
+    <script src="mur.js"></script>
+  </body>
+</html>
