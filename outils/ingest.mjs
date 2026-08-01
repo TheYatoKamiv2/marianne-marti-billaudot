@@ -266,6 +266,18 @@ function formaterDimensions({ hauteur, largeur, diametre }) {
   return null;
 }
 
+/**
+ * Une mesure du classeur, en centimètres.
+ * « 120 » → 120 ; « 3x60 » (triptyque) → 180 ; « (2x80) » → 160.
+ */
+function centimetres(valeur) {
+  if (!valeur) return null;
+  const m = /(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)/i.exec(valeur);
+  if (m) return Number(m[1].replace(',', '.')) * Number(m[2].replace(',', '.'));
+  const seul = /(\d+(?:[.,]\d+)?)/.exec(valeur);
+  return seul ? Number(seul[1].replace(',', '.')) : null;
+}
+
 /** « 1996-1997 » → 1996 et 1997 */
 const annees = (date) => [...String(date).matchAll(/\d{4}/g)].map((m) => Number(m[0]));
 
@@ -302,12 +314,18 @@ function construire(lignes, manifeste) {
     if (!manifeste[id]) console.warn(`⚠  ligne ${n} : image « ${id}.png » introuvable`);
     const note = cellules.J ?? '';
 
+    // Hauteur réelle en cm : c'est elle qui donne l'échelle sur le mur.
+    // Un tondeau n'a qu'un diamètre, qui fait office de hauteur.
+    const hauteurCm = centimetres(cellules.G) ?? centimetres(cellules.E);
+
     courante.oeuvres.push({
       id,
       lettre: cellules.C ?? '',
       annee: cellules.D ?? '',
       technique: cellules.H ?? '',
       dimensions: formaterDimensions({ hauteur: cellules.E, largeur: cellules.F, diametre: cellules.G }),
+      hauteurCm,
+      largeurCm: centimetres(cellules.G) ?? centimetres(cellules.F),
       vendue: (cellules.I ?? '').toLowerCase() === 'oui',
       note: note && !interne(note) ? note : null,
       // Les URL se déduisent de l'id : /tableaux/<id>-md.webp

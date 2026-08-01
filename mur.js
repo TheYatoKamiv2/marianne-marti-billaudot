@@ -15,10 +15,17 @@ const textes = TEXTES; // textes.js
 const donnees = DONNEES; // data.js
 const collections = donnees.collections;
 
-/* Accrochage : hauteurs et décalages légèrement irréguliers, pour que la
-   ligne d'accrochage ne soit pas parfaitement droite. */
-const FACTEURS = [1, 0.86, 1.1, 0.92, 1.04, 0.8, 0.98, 1.12];
-const DECALAGES = [0, 30, -26, 14, -18, 24, -10, 34];
+/* Les œuvres sont accrochées à leur taille réelle : la hauteur affichée
+   est proportionnelle à la hauteur en centimètres notée dans le classeur
+   (le diamètre, pour un tondeau). L'échelle elle-même — combien de pixels
+   valent un centimètre — est dans style.css, variable --cm.
+   19 œuvres sur 236 n'ont aucune dimension au classeur ; faute de mieux,
+   on leur en donne une, honnête et moyenne. */
+const HAUTEUR_INCONNUE = 60;
+
+/* Hauteur, en cm, à laquelle afficher une page de garde repliée : toutes
+   la même, pour que la rangée de collections reste lisible. */
+const HAUTEUR_GARDE = 110;
 
 const vignette = (id) => `tableaux/${id}-md.webp`;
 const grande = (id) => `tableaux/${id}-lg.webp`;
@@ -240,7 +247,7 @@ function garde(collection) {
   const premiere = collection.oeuvres[0];
   return e(
     'figure',
-    { class: 'oeuvre', css: { '--facteur': '1.14' } },
+    { class: 'oeuvre', css: { '--hauteur': String(HAUTEUR_GARDE) } },
     e(
       'button',
       {
@@ -264,17 +271,15 @@ function garde(collection) {
 /** Une œuvre accrochée. */
 function oeuvre(collection, rang) {
   const o = collection.oeuvres[rang];
-  const decalage = DECALAGES[rang % DECALAGES.length];
   return e(
     'figure',
     {
       class: 'oeuvre',
       css: {
-        '--facteur': String(FACTEURS[rang % FACTEURS.length]),
-        '--decalage': `${decalage}px`,
+        '--hauteur': String(o.hauteurCm ?? HAUTEUR_INCONNUE),
         '--retard': `${Math.min(rang, 12) * 0.045}s`,
       },
-      style: { transform: `translateY(${decalage}px)` },
+      title: o.dimensions ?? 'Dimensions non communiquées',
     },
     e(
       'button',
@@ -348,15 +353,20 @@ function cadrer(collection) {
 }
 
 // ══ défilement ══════════════════════════════════════════════════════
+/* La scène est une vraie zone de défilement horizontale : la barre de
+   défilement du navigateur est donc celle du mur, et le clavier, le
+   trackpad et le tactile fonctionnent sans qu'on s'en occupe. */
 function mesurer() {
-  // offsetWidth, et non scrollWidth : le rail n'est pas une zone de
-  // défilement, seule sa largeur propre (max-content) est fiable.
-  position.max = Math.max(0, rail.offsetWidth - scene.clientWidth);
-  position.cible = Math.min(position.cible, position.max);
+  position.max = Math.max(0, scene.scrollWidth - scene.clientWidth);
 }
 
-function viser(x) {
-  position.cible = Math.max(0, Math.min(position.max, x));
+/** Va à la position demandée. `doux` : glissé, sinon immédiat. */
+function viser(x, doux = true) {
+  mesurer();
+  scene.scrollTo({
+    left: Math.max(0, Math.min(position.max, x)),
+    behavior: doux ? 'smooth' : 'auto',
+  });
 }
 
 let derniereSalle = '';
@@ -381,19 +391,23 @@ function majSalle() {
   }
 }
 
-function battement() {
-  position.courant += (position.cible - position.courant) * 0.15;
-  if (Math.abs(position.cible - position.courant) < 0.4) position.courant = position.cible;
-  rail.style.transform = `translate3d(${-position.courant}px,0,0)`;
-
-  const part = position.max > 0 ? position.courant / position.max : 0;
-  jauge.style.width = `${part * 100}%`;
-  pourcent.textContent = `${String(Math.round(part * 100)).padStart(2, '0')} %`;
-  majSalle();
-
-  requestAnimationFrame(battement);
+/* Repère du bas : mis à jour au fil du défilement, jamais en continu. */
+let repeindre = false;
+function surDefilement() {
+  if (repeindre) return;
+  repeindre = true;
+  requestAnimationFrame(() => {
+    repeindre = false;
+    mesurer();
+    const part = position.max > 0 ? scene.scrollLeft / position.max : 0;
+    jauge.style.width = `${part * 100}%`;
+    pourcent.textContent = `${String(Math.round(part * 100)).padStart(2, '0')} %`;
+    majSalle();
+  });
 }
+scene.addEventListener('scroll', surDefilement, { passive: true });
 
+/* La molette verticale fait avancer le mur horizontalement. */
 scene.addEventListener(
   'wheel',
   (ev) => {
@@ -401,7 +415,7 @@ scene.addEventListener(
     const d = Math.abs(ev.deltaY) > Math.abs(ev.deltaX) ? ev.deltaY : ev.deltaX;
     if (!d) return;
     ev.preventDefault();
-    viser(position.cible + d * 1.15);
+    scene.scrollLeft += d * 1.15;
   },
   { passive: false }
 );
@@ -412,11 +426,12 @@ let departPos = 0;
 let parcouru = 0;
 
 scene.addEventListener('pointerdown', (ev) => {
-  if (bloque() || ev.button === 2) return;
+  // Au doigt, le navigateur fait déjà défiler : on ne s'en mêle pas.
+  if (bloque() || ev.button === 2 || ev.pointerType === 'touch') return;
   tire = true;
   parcouru = 0;
   departX = ev.clientX;
-  departPos = position.cible;
+  departPos = scene.scrollLeft;
   scene.classList.add('tire');
 });
 addEventListener(
@@ -425,7 +440,7 @@ addEventListener(
     if (!tire) return;
     const dx = ev.clientX - departX;
     parcouru = Math.max(parcouru, Math.abs(dx));
-    viser(departPos - dx);
+    scene.scrollLeft = departPos - dx;
   },
   { passive: true }
 );
@@ -445,8 +460,8 @@ addEventListener('pointercancel', relacher);
 addEventListener('keydown', (ev) => {
   if (fiche || document.querySelector('.sommaire')) return; // ces vues gèrent leurs touches
   const pas = ev.shiftKey ? 1400 : 460;
-  if (ev.key === 'ArrowRight') viser(position.cible + pas);
-  else if (ev.key === 'ArrowLeft') viser(position.cible - pas);
+  if (ev.key === 'ArrowRight') viser(scene.scrollLeft + pas);
+  else if (ev.key === 'ArrowLeft') viser(scene.scrollLeft - pas);
   else if (ev.key === 'Home') viser(0);
   else if (ev.key === 'End') viser(position.max);
   else if (ev.key === 'Escape' && ouverte) {
@@ -753,6 +768,6 @@ if (location.hash.startsWith('#/')) {
   // arrivée par un lien : on saute le rideau d'entrée
   document.querySelector('.intro')?.classList.add('parti');
 }
-requestAnimationFrame(battement);
+surDefilement();
 setTimeout(mesurer, 500);
 setTimeout(mesurer, 1600);
