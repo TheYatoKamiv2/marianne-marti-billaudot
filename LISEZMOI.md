@@ -133,10 +133,18 @@ En ajoutant beaucoup d'œuvres, deux solutions :
 
 ## Naviguer
 
-- **Glisser** à la souris, **molette**, ou **← →** au clavier
-  (avec `Maj` pour aller plus vite, `Début` / `Fin` pour les extrémités).
+- **Barre de défilement**, **glisser** à la souris, **molette**, ou
+  **← →** au clavier (avec `Maj` pour aller plus vite, `Début` / `Fin`
+  pour les extrémités).
 - **Sommaire** : la liste des 39 collections, avec un champ de recherche.
+  C'est le seul endroit qui déplace volontairement le regard, puisqu'on
+  demande explicitement à aller quelque part.
 - **Échap** replie la collection ouverte, ferme la fiche ou le sommaire.
+
+Déplier ou replier une collection **ne déplace jamais le visiteur** : les
+œuvres sortent du cartel, ou y rentrent, en glissant. Quand une autre
+collection était ouverte, elle se referme discrètement et le défilement
+est corrigé d'autant, pour que rien ne bouge sous les yeux.
 
 Chaque collection a son adresse, que l'on peut partager :
 

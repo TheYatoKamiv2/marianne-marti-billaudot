@@ -115,9 +115,26 @@ body::before {
   padding: 0 7vw;
 }
 
-/* le conteneur dépliable ne doit pas casser la rangée */
+/* Conteneur dépliable. Il porte le même écart que la rangée, pour se
+   fondre dedans, et c'est sa largeur que l'on anime au dépliage. */
 .contenu {
-  display: contents;
+  display: flex;
+  align-items: center;
+  gap: 4.5vw;
+  transition: opacity 0.22s ease;
+}
+.contenu.efface {
+  opacity: 0;
+}
+/* Pendant l'animation seulement : la largeur glisse et le débord est
+   coupé, si bien que les œuvres sortent du cartel ou y rentrent.
+   Le rembourrage vertical, annulé par une marge négative, évite que les
+   ombres et les cartels soient rognés en haut et en bas. */
+.contenu.plie {
+  overflow: hidden;
+  padding: 80px 0;
+  margin: -80px 0;
+  transition: width 0.55s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.22s ease;
 }
 
 /* ─── panneaux de texte ───────────────────────────────────────── */

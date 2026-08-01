@@ -99,13 +99,20 @@ function basculeEchelle() {
     bouton.setAttribute('aria-pressed', String(echelleReelle));
   };
   bouton.addEventListener('click', () => {
+    // Toutes les largeurs changent d'un coup. Plutôt que d'envoyer le
+    // visiteur ailleurs, on retient la section qu'il a sous les yeux et
+    // on la remet exactement au même endroit de l'écran.
+    const ancre = [...rail.children].find(
+      (el) => el.offsetLeft + el.offsetWidth > scene.scrollLeft
+    );
+    const ecart = ancre ? scene.scrollLeft - ancre.offsetLeft : 0;
+
     echelleReelle = !echelleReelle;
     localStorage.setItem(CLE_ECHELLE, echelleReelle ? 'reelle' : 'uniforme');
     appliquer();
-    // les largeurs changent : on remesure et on garde la collection en vue
-    const ouverteObj = collections.find((c) => c.id === ouverte);
-    if (ouverteObj) cadrer(ouverteObj);
-    else surDefilement();
+
+    if (ancre) scene.scrollLeft = ancre.offsetLeft + ecart;
+    surDefilement();
   });
   appliquer();
   return bouton;
@@ -140,7 +147,7 @@ for (const collection of collections) {
   collection._contenu = contenu;
   collection._section = section;
   rail.append(section);
-  replier(collection);
+  contenu.append(...contenuDe(collection, false)); // repliée au départ
 }
 
 rail.append(panneauBiographie(), panneauContact());
@@ -359,34 +366,105 @@ function image(o, alt) {
 }
 
 // ── déplier / replier ────────────────────────────────────────────────
-function replier(collection) {
-  collection._contenu.replaceChildren(garde(collection));
-  collection._section.classList.remove('ouverte');
-  collection._action.lastChild.textContent = 'Déplier la collection';
+const DUREE_PLI = 550; // doit correspondre à la transition de .contenu.plie
+const DUREE_FONDU = 220;
+const sansAnimation = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const patienter = (ms) => new Promise((r) => setTimeout(r, sansAnimation ? 0 : ms));
+
+/* Déclarée en `function` et non en `const` : elle sert dès la
+   construction du mur, plus haut dans le fichier. */
+function contenuDe(collection, ouvert) {
+  return ouvert
+    ? collection.oeuvres.map((_, rang) => oeuvre(collection, rang))
+    : [garde(collection)];
 }
 
-function deplier(collection) {
-  collection._contenu.replaceChildren(
-    ...collection.oeuvres.map((_, rang) => oeuvre(collection, rang))
-  );
-  collection._section.classList.add('ouverte');
-  collection._action.lastChild.textContent = 'Replier';
+function marquerOuverte(collection, ouvert) {
+  collection._section.classList.toggle('ouverte', ouvert);
+  collection._action.lastChild.textContent = ouvert ? 'Replier' : 'Déplier la collection';
+}
+
+/**
+ * Déplie ou replie sur place, en animant la largeur : les œuvres
+ * sortent du cartel, ou y rentrent. Le regard n'est pas déplacé.
+ */
+async function plier(collection, ouvrir) {
+  const boite = collection._contenu;
+  if (boite._enCours) return;
+  boite._enCours = true;
+
+  const avant = boite.offsetWidth;
+
+  // en repliant, les œuvres s'effacent d'abord, puis la place se referme
+  if (!ouvrir) {
+    boite.classList.add('efface');
+    await patienter(DUREE_FONDU);
+  }
+
+  boite.style.width = 'auto';
+  boite.replaceChildren(...contenuDe(collection, ouvrir));
+  boite.classList.remove('efface');
+  marquerOuverte(collection, ouvrir);
+  const apres = boite.offsetWidth;
+
+  // largeur de départ, puis largeur d'arrivée : la transition fait le reste
+  boite.classList.add('plie');
+  boite.style.width = `${avant}px`;
+  void boite.offsetWidth; // force le calcul, sinon les deux valeurs fusionnent
+  boite.style.width = `${apres}px`;
+
+  await patienter(DUREE_PLI);
+  boite.style.width = '';
+  boite.classList.remove('plie');
+  boite._enCours = false;
+  surDefilement();
+}
+
+/**
+ * Referme une collection sans rien animer, en compensant le défilement
+ * si elle se trouve à gauche de ce que l'on regarde — sinon tout le mur
+ * glisserait sous les yeux du visiteur.
+ */
+function replierSansBouger(collection) {
+  const boite = collection._contenu;
+  const avant = boite.offsetWidth;
+  const debut = collection._section.offsetLeft;
+
+  boite.replaceChildren(...contenuDe(collection, false));
+  marquerOuverte(collection, false);
+
+  const delta = boite.offsetWidth - avant;
+  if (delta && debut < scene.scrollLeft) scene.scrollLeft += delta;
 }
 
 function basculer(collection) {
   if (scene.dataset.glisse) return; // simple fin de glissement
-  appliquerOuverte(ouverte === collection.id ? null : collection.id);
-  cadrer(collection);
+  const ouvrir = ouverte !== collection.id;
+
+  // l'autre collection ouverte se referme discrètement, sans déplacer la vue
+  const precedente = collections.find((c) => c.id === ouverte && c !== collection);
+  if (precedente) replierSansBouger(precedente);
+
+  ouverte = ouvrir ? collection.id : null;
+  plier(collection, ouvrir);
   majAdresse();
 }
 
+/** Changement d'état sans animation : sommaire et liens profonds, qui
+    déplacent volontairement le regard juste après. */
 function appliquerOuverte(id) {
   if (ouverte === id) return;
   const precedente = collections.find((c) => c.id === ouverte);
-  if (precedente) replier(precedente);
+  if (precedente) {
+    precedente._contenu.replaceChildren(...contenuDe(precedente, false));
+    marquerOuverte(precedente, false);
+  }
   ouverte = id;
   const suivante = collections.find((c) => c.id === id);
-  if (suivante) deplier(suivante);
+  if (suivante) {
+    suivante._contenu.replaceChildren(...contenuDe(suivante, true));
+    marquerOuverte(suivante, true);
+  }
 }
 
 /** Amène une collection près du bord gauche de l'écran. */
@@ -508,7 +586,10 @@ addEventListener('keydown', (ev) => {
   else if (ev.key === 'Home') viser(0);
   else if (ev.key === 'End') viser(position.max);
   else if (ev.key === 'Escape' && ouverte) {
-    appliquerOuverte(null);
+    // même repli animé que par le cartel, sans déplacer le regard
+    const courante = collections.find((c) => c.id === ouverte);
+    ouverte = null;
+    plier(courante, false);
     majAdresse();
   } else return;
   ev.preventDefault();
