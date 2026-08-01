@@ -3,11 +3,9 @@
  * biographie, l'adresse e-mail ou les liens.
  * Les œuvres, elles, viennent du classeur Excel via outils/ingest.mjs.
  *
- * ┌──────────────────────────────────────────────────────────────────┐
- * │  À FAIRE AVANT LA MISE EN LIGNE                                  │
- * │  Remplacer « email » ci-dessous par la vraie adresse.            │
- * │  Tant que ce n'est pas fait, le site affiche une adresse fausse. │
- * └──────────────────────────────────────────────────────────────────┘
+ * « email » est l'adresse à laquelle le formulaire de contact prépare
+ * le message. Le site n'envoie rien lui-même : il ouvre le logiciel de
+ * courrier du visiteur, message déjà rédigé (voir LISEZMOI).
  *
  * Les paragraphes de biographie et les repères ne contiennent que des
  * informations vérifiables dans le classeur : dates, techniques, nombres
@@ -33,8 +31,7 @@ const TEXTES = {
   bio2:
     'Le reste du travail passe par le dessin à la mine de plomb, l’aquarelle sur papier lavis, le collage et la photographie : argentique noir et blanc au début, puis couleur marouflée sur plaque d’aluminium. Les titres des collections gardent la trace des lieux où elles ont été montrées — le salon de la Jeune Peinture, la villa Steinbach et le Crac Alsace en 1999, la MAPRA à Lyon en 2002, le 5e Art en 2006.',
 
-  // À COMPLÉTER — adresse réelle, obligatoire avant la mise en ligne
-  email: 'adresse-a-completer@exemple.fr',
+  email: 'marti-billaudot@orange.fr',
   liens: [
     // { libelle: 'Instagram', url: 'https://instagram.com/…' },
   ],

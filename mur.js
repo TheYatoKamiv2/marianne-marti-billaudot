@@ -56,6 +56,14 @@ let ouverte = null; // id de la collection dépliée
 let fiche = null; // { collection, rang }
 const position = { courant: 0, cible: 0, max: 0 };
 
+/* Échelle d'accrochage.
+   « Échelle réelle » : chaque œuvre occupe la hauteur que lui donne le
+   classeur — un 195 cm écrase donc un dessin de 20 cm, comme au mur.
+   Sinon : toutes à la même hauteur, plus commode pour parcourir une
+   collection. Le choix est retenu d'une visite à l'autre. */
+const CLE_ECHELLE = 'mmb-echelle';
+let echelleReelle = localStorage.getItem(CLE_ECHELLE) !== 'uniforme';
+
 const racine = document.getElementById('site');
 const bloque = () => Boolean(fiche || document.querySelector('.sommaire'));
 
@@ -70,8 +78,38 @@ const pourcent = e('div', { class: 'mono pourcent', texte: '00 %' });
 racine.append(
   enTete(),
   scene,
-  e('div', { class: 'pied' }, salle, e('div', { class: 'piste' }, jauge), pourcent)
+  e(
+    'div',
+    { class: 'pied' },
+    salle,
+    e('div', { class: 'piste' }, jauge),
+    basculeEchelle(),
+    pourcent
+  )
 );
+
+function basculeEchelle() {
+  const bouton = e('button', {
+    class: 'mono bascule',
+    texte: 'Échelle réelle',
+    title: 'Afficher chaque œuvre à sa taille réelle, d’après les dimensions du classeur',
+  });
+  const appliquer = () => {
+    document.documentElement.dataset.echelle = echelleReelle ? 'reelle' : 'uniforme';
+    bouton.setAttribute('aria-pressed', String(echelleReelle));
+  };
+  bouton.addEventListener('click', () => {
+    echelleReelle = !echelleReelle;
+    localStorage.setItem(CLE_ECHELLE, echelleReelle ? 'reelle' : 'uniforme');
+    appliquer();
+    // les largeurs changent : on remesure et on garde la collection en vue
+    const ouverteObj = collections.find((c) => c.id === ouverte);
+    if (ouverteObj) cadrer(ouverteObj);
+    else surDefilement();
+  });
+  appliquer();
+  return bouton;
+}
 
 function enTete() {
   return e(
@@ -311,7 +349,12 @@ function image(o, alt) {
     decoding: 'async',
     style: { aspectRatio: String(o.rapport) },
   });
-  if (o.flou) img.style.backgroundImage = `url(${o.flou})`;
+  if (o.flou) {
+    // La vignette floue tient la place le temps du chargement, puis on
+    // l'efface : sinon elle transparaîtrait derrière un PNG détouré.
+    img.style.backgroundImage = `url(${o.flou})`;
+    img.addEventListener('load', () => (img.style.backgroundImage = ''), { once: true });
+  }
   return img;
 }
 

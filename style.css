@@ -310,6 +310,12 @@ body::before {
   width: auto;
   background-size: cover;
   background-position: center;
+  transition: height 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* Échelle décochée : toutes les œuvres à la même hauteur. On ne bride
+   pas la largeur — le mur défile, et brider déformerait les panoramas. */
+:root[data-echelle='uniforme'] .oeuvre img {
+  height: var(--unite);
 }
 .oeuvre figcaption {
   margin-top: 16px;
@@ -418,6 +424,27 @@ body::before {
   color: rgba(var(--encre-rgb), 0.5);
   min-width: 40px;
   text-align: right;
+}
+
+/* bascule « Échelle réelle » */
+.pied .bascule {
+  pointer-events: auto;
+  cursor: pointer;
+  white-space: nowrap;
+  background: none;
+  border: 1px solid rgba(var(--encre-rgb), 0.25);
+  color: rgba(var(--encre-rgb), 0.55);
+  padding: 6px 12px;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+}
+.pied .bascule:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.pied .bascule[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 /* ─── sommaire ────────────────────────────────────────────────── */
@@ -805,7 +832,16 @@ body::before {
     letter-spacing: 0.08em;
   }
   .pied .salle {
-    max-width: 42vw;
+    max-width: 34vw;
+  }
+  /* la barre de défilement dit déjà où l'on en est */
+  .pied .piste,
+  .pied .pourcent {
+    display: none;
+  }
+  .pied .bascule {
+    margin-left: auto;
+    padding: 5px 9px;
   }
 }
 

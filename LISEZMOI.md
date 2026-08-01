@@ -1,18 +1,9 @@
 # Site de Marianne Marti-Billaudot
 
-> ## ⚠ Avant la mise en ligne
->
-> **L'adresse e-mail est encore un texte de remplacement**
-> (`adresse-a-completer@exemple.fr`). Elle apparaît deux fois sur le
-> panneau Contact. La remplacer dans `textes.js`, ligne `email`.
-> Tant qu'elle n'est pas corrigée, un avertissement s'affiche dans la
-> console du navigateur.
->
-> La biographie et les repères ne contiennent que des informations
-> vérifiables dans le classeur — dates, techniques, nombres d'œuvres,
-> noms d'expositions tirés des titres de collections. Rien n'y est
-> inventé, mais ce n'est pas un texte d'artiste : à remplacer par le sien
-> s'il en existe un.
+> La biographie ne contient que des informations vérifiables dans le
+> classeur — dates, techniques, nombres d'œuvres, noms d'expositions
+> tirés des titres de collections. Rien n'y est inventé, mais ce n'est
+> pas un texte d'artiste : à remplacer par le sien s'il en existe un.
 
 Un site d'une seule page : une cimaise horizontale que l'on fait défiler.
 On y voit la page de garde de chaque collection ; un clic la déplie sur place.
@@ -37,9 +28,10 @@ Pour voir le site : ouvrir `index.html` dans un navigateur. C'est tout.
 
 ## Changer un texte
 
-Ouvrir `textes.js`, modifier, enregistrer, recharger la page.
-Les mentions **« À COMPLÉTER »** signalent les textes provisoires :
-la biographie et l'adresse e-mail (`contact@example.com`) sont à remplacer.
+Ouvrir `textes.js`, modifier, enregistrer, recharger la page. On y trouve
+le nom, l'accroche d'accueil, les deux paragraphes de biographie,
+l'adresse de contact et les liens (Instagram et autres, vides pour
+l'instant).
 
 ## Ajouter ou modifier des œuvres
 
@@ -153,9 +145,55 @@ Chaque collection a son adresse, que l'on peut partager :
 …/#/rencontres/28G       ouvre en plus la fiche de l'œuvre 28G
 ```
 
-## À savoir
+## Comment fonctionne le formulaire de contact
 
-Le formulaire de contact ouvre le logiciel de courrier du visiteur : un
-site statique n'a pas de serveur pour envoyer un message. Pour recevoir
-les messages directement, il faudrait passer par un service de
-formulaires (Formspree, Vercel Forms…) — dites-le si c'est souhaité.
+**Le site n'envoie aucun e-mail lui-même.** Il n'a pas de serveur : c'est
+un dossier de fichiers, il ne peut donc rien expédier.
+
+Quand un visiteur remplit le formulaire et clique sur *Envoyer*, la page
+ouvre **son propre logiciel de courrier** (Mail, Outlook, Gmail…) avec un
+message déjà rédigé : destinataire `marti-billaudot@orange.fr`, objet
+« Site — son nom », et son message dans le corps. **C'est lui qui appuie
+sur envoyer**, depuis sa propre adresse.
+
+Conséquences, à connaître :
+
+- Le message arrive bien à `marti-billaudot@orange.fr`, et l'on peut
+  répondre directement au visiteur puisqu'il écrit de sa propre boîte.
+- Mais si le visiteur n'a pas de logiciel de courrier configuré — cas
+  fréquent sur un ordinateur de bureau où l'on ne relève son courrier que
+  sur le web — **il ne se passe rien**, et le message est perdu.
+  C'est pourquoi l'adresse est aussi affichée en toutes lettres à côté du
+  bouton, cliquable, pour qu'on puisse toujours la copier.
+- Rien n'est enregistré nulle part : aucune trace des messages côté site.
+
+Pour que les messages arrivent à coup sûr, sans dépendre du logiciel du
+visiteur, il faut un service de formulaires — Formspree ou Web3Forms
+(gratuits pour un petit volume) reçoivent l'envoi et le réexpédient par
+courrier. Cela demande de créer un compte et de remplacer une dizaine de
+lignes dans `mur.js`. À demander si c'est souhaité.
+
+Changer l'adresse : `textes.js`, ligne `email`.
+
+## L'échelle des œuvres
+
+En bas de l'écran, le bouton **Échelle réelle** commande la taille
+d'accrochage :
+
+- **allumé** (par défaut) : chaque œuvre occupe la hauteur que lui donne
+  le classeur. Un diplôme de 195 cm écrase un dessin de 20 cm, comme sur
+  une vraie cimaise. Les polyptyques comptent en entier — « 3x60 » vaut
+  180 cm de large.
+- **éteint** : toutes les œuvres à la même hauteur, plus commode pour
+  parcourir une collection.
+
+Le choix est retenu d'une visite à l'autre.
+
+L'échelle elle-même se règle dans `style.css`, variable `--cm` : elle dit
+combien de pixels vaut un centimètre. Par défaut, deux mètres de haut
+occupent au plus 540 px.
+
+**19 œuvres sur 236 n'ont aucune dimension au classeur** (la collection
+où figure la note « je ne connais pas les tailles »). Faute de mieux, on
+leur donne 60 cm — `HAUTEUR_INCONNUE`, en haut de `mur.js`. Leur fiche
+indique bien « Dimensions non communiquées ».
