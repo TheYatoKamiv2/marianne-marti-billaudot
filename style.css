@@ -192,7 +192,20 @@ body::before {
 }
 .biographie .panneau {
   padding-right: 0;
-  width: min(46vw, 560px);
+  width: min(58vw, 820px);
+}
+/* Le texte de l'artiste est long et le mur ne défile pas verticalement :
+   deux colonnes, comme un texte de salle. */
+.bio {
+  columns: 2;
+  column-gap: 42px;
+}
+.bio p {
+  font-size: 15px;
+  line-height: 1.62;
+  max-width: none;
+  margin: 0 0 15px;
+  break-inside: avoid; /* pas de paragraphe coupé en deux colonnes */
 }
 /* le portrait est accroché comme les œuvres, même carton, même ombre */
 .portrait {
@@ -808,7 +821,31 @@ body::before {
     gap: 7vw;
   }
   .biographie .panneau {
-    width: 74vw;
+    width: 78vw;
+  }
+  /* Sur téléphone, le texte est plus haut que l'écran : une seule
+     colonne, que l'on fait défiler verticalement. C'est le seul endroit
+     du site où l'on défile ainsi, mais c'est le seul moyen sûr de ne
+     rien tronquer, quelle que soit la longueur du texte. */
+  .bio {
+    /* « auto » des deux côtés : ce n'est plus un bloc multicolonne, sans
+       quoi la hauteur limitée renverrait le texte dans des colonnes
+       supplémentaires à droite au lieu de le faire défiler. */
+    columns: auto;
+    max-height: 58vh;
+    overflow-y: auto;
+    padding-right: 14px;
+    scrollbar-color: var(--accent) rgba(var(--encre-rgb), 0.1);
+  }
+  .bio::-webkit-scrollbar {
+    width: 6px;
+  }
+  .bio::-webkit-scrollbar-track {
+    background: rgba(var(--encre-rgb), 0.1);
+  }
+  .bio::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 3px;
   }
   .portrait {
     padding: 10px;

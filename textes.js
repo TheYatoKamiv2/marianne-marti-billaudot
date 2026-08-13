@@ -7,16 +7,16 @@
  * le message. Le site n'envoie rien lui-même : il ouvre le logiciel de
  * courrier du visiteur, message déjà rédigé (voir LISEZMOI).
  *
- * Les paragraphes de biographie et les repères ne contiennent que des
- * informations vérifiables dans le classeur : dates, techniques, nombres
- * d'œuvres et noms d'expositions tels qu'ils figurent dans les titres de
- * collections. Rien n'y est supposé. À remplacer, bien sûr, par le texte
- * de l'artiste si elle en a un.
+ * « bio » est le texte de l'artiste, à la première personne, tel qu'elle
+ * l'a écrit. Une entrée du tableau = un paragraphe ; en ajouter ou en
+ * retirer ne demande rien d'autre. Attention : chaque paragraphe tient
+ * sur une seule ligne, entre apostrophes — un retour à la ligne au
+ * milieu d'un texte empêcherait la page de s'afficher.
  */
 const TEXTES = {
   nom: 'Marianne Marti-Billaudot',
   role: 'Peinture, dessin et photographie',
-  lieu: 'France',
+  lieu: 'Lyon',
 
   /* Titre d'accueil. Choix de formulation — les trois motifs cités
      reviennent dans les titres de collections (Herbes, Près d'herbes,
@@ -26,10 +26,14 @@ const TEXTES = {
   accroche:
     '236 œuvres réunies en 39 collections, de 1993 à 2024 — huile sur toile, tondeau de broderie, dessin, aquarelle et photographie.',
 
-  bio1:
-    'Marianne Marti-Billaudot est diplômée des Beaux-Arts de Paris en décembre 1995. Les œuvres rassemblées ici couvrent trente ans, de 1993 à 2024 : 236 pièces réparties en 39 collections. L’huile sur toile domine — 76 œuvres — devant l’huile sur tondeau de broderie, qui en compte 30.',
-  bio2:
-    'Le reste du travail passe par le dessin à la mine de plomb, l’aquarelle sur papier lavis, le collage et la photographie : argentique noir et blanc au début, puis couleur marouflée sur plaque d’aluminium. Les titres des collections gardent la trace des lieux où elles ont été montrées — le salon de la Jeune Peinture, la villa Steinbach et le Crac Alsace en 1999, la MAPRA à Lyon en 2002, le 5e Art en 2006.',
+  bio: [
+    'Je suis artiste plasticienne, diplômée de l’École des Beaux-Arts de Paris depuis 1995. En 2003, j’ai ouvert mon atelier de peinture et de dessin dans le quartier de Trion, à Lyon, où je travaille et enseigne encore aujourd’hui.',
+    'La transmission est au cœur de ma démarche artistique. J’accompagne des enfants et des adultes dans leur découverte et leur pratique du dessin et de la peinture, en proposant un enseignement adapté à chacun, quel que soit son niveau. Mon objectif est de développer la créativité, la sensibilité et la confiance de chacun à travers l’expression artistique.',
+    'J’accompagne également les jeunes qui souhaitent intégrer une école d’art en les préparant aux concours d’entrée. Grâce à un suivi personnalisé, je les aide à construire leur dossier artistique, à affirmer leur démarche créative et à se préparer aux épreuves avec exigence et sérénité.',
+    'J’interviens également en EHPAD, où j’anime des ateliers de dessin et de peinture. Ces moments de création sont pour moi l’occasion de favoriser les échanges, de stimuler l’imagination et d’offrir un espace d’expression et de plaisir partagé.',
+    'À travers ce site, je vous invite à découvrir un aperçu de mon travail artistique, fruit de plus de trente années de création, de recherches et d’expérimentations. Chaque œuvre témoigne d’un parcours nourri par la passion de l’art et le désir de partager un regard sensible sur le monde.',
+    'N’hésitez pas à me contacter pour toute demande d’information, pour découvrir mon atelier ou pour échanger autour de vos projets artistiques.',
+  ],
 
   email: 'marti-billaudot@orange.fr',
   liens: [

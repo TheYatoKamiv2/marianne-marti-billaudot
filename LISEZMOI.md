@@ -1,10 +1,5 @@
 # Site de Marianne Marti-Billaudot
 
-> La biographie ne contient que des informations vérifiables dans le
-> classeur — dates, techniques, nombres d'œuvres, noms d'expositions
-> tirés des titres de collections. Rien n'y est inventé, mais ce n'est
-> pas un texte d'artiste : à remplacer par le sien s'il en existe un.
-
 Un site d'une seule page : une cimaise horizontale que l'on fait défiler.
 On y voit la page de garde de chaque collection ; un clic la déplie sur place.
 
@@ -29,9 +24,17 @@ Pour voir le site : ouvrir `index.html` dans un navigateur. C'est tout.
 ## Changer un texte
 
 Ouvrir `textes.js`, modifier, enregistrer, recharger la page. On y trouve
-le nom, l'accroche d'accueil, les deux paragraphes de biographie,
-l'adresse de contact et les liens (Instagram et autres, vides pour
-l'instant).
+le nom, l'accroche d'accueil, la biographie, l'adresse de contact et les
+liens (Instagram et autres, vides pour l'instant).
+
+La biographie est le texte de l'artiste, dans `bio` : **une ligne du
+tableau = un paragraphe**. Pour en ajouter un, ajouter une ligne entre
+apostrophes, suivie d'une virgule. Attention, chaque paragraphe doit
+tenir sur une seule ligne : un retour à la ligne au milieu d'un texte
+empêche la page entière de s'afficher.
+
+Sur grand écran le texte s'affiche sur deux colonnes à côté du portrait ;
+sur téléphone, sur une colonne que l'on fait défiler.
 
 ## Ajouter ou modifier des œuvres
 

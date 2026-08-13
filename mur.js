@@ -196,8 +196,12 @@ function panneauBiographie() {
       { class: 'panneau' },
       e('div', { class: 'mono sur-titre', texte: 'Le parcours' }),
       e('h2', { class: 'serif', texte: textes.nom }),
-      e('p', { texte: textes.bio1, style: { marginTop: '0' } }),
-      e('p', { texte: textes.bio2 })
+      // sur deux colonnes : le texte est long, le mur n'est pas haut
+      e(
+        'div',
+        { class: 'bio' },
+        textes.bio.map((paragraphe) => e('p', { texte: paragraphe }))
+      )
     )
   );
 }
