@@ -25,7 +25,7 @@ const HAUTEUR_INCONNUE = 60;
 
 /* Hauteur, en cm, à laquelle afficher une page de garde repliée : toutes
    la même, pour que la rangée de collections reste lisible. */
-const HAUTEUR_GARDE = 110;
+const HAUTEUR_GARDE = 150;
 
 const vignette = (id) => `tableaux/${id}-md.webp`;
 const grande = (id) => `tableaux/${id}-lg.webp`;
@@ -360,11 +360,19 @@ function image(o, alt) {
     decoding: 'async',
     style: { aspectRatio: String(o.rapport) },
   });
-  if (o.flou) {
-    // La vignette floue tient la place le temps du chargement, puis on
-    // l'efface : sinon elle transparaîtrait derrière un PNG détouré.
-    img.style.backgroundImage = `url(${o.flou})`;
-    img.addEventListener('load', () => (img.style.backgroundImage = ''), { once: true });
+  if (o.flou) img.style.backgroundImage = `url(${o.flou})`;
+
+  /* L'œuvre se révèle en fondu une fois chargée. La vignette floue reste
+     derrière le temps du fondu, puis s'efface : sinon elle
+     transparaîtrait derrière un scan détouré. */
+  const revele = () => {
+    img.classList.add('chargee');
+    if (o.flou) setTimeout(() => (img.style.backgroundImage = ''), 600);
+  };
+  if (img.complete && img.naturalWidth) revele();
+  else {
+    img.addEventListener('load', revele, { once: true });
+    img.addEventListener('error', revele, { once: true }); // ne jamais rester invisible
   }
   return img;
 }
