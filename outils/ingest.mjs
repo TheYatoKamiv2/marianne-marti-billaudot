@@ -101,7 +101,9 @@ async function convertirImages() {
   console.log(`${fichiers.length} scans dans ${SOURCE_SCANS}`);
 
   const manifeste = {};
+  const refaits = []; // scans nouveaux ou retouchés, donc reconvertis
   let faits = 0;
+  let intacts = 0;
   let entrant = 0;
   let sortant = 0;
 
@@ -109,6 +111,34 @@ async function convertirImages() {
     const id = basename(fichier, extname(fichier)); // « 4F »
     const chemin = resolve(SOURCE_SCANS, fichier);
     entrant += statSync(chemin).size;
+    const sorties = TAILLES.map((t) => resolve(DEST_IMAGES, `${id}-${t.suffixe}.webp`));
+
+    /* Un dérivé est à refaire s'il manque, ou si le scan a été retouché
+       depuis. Comparer les dates et pas seulement l'existence : sans
+       cela, un tableau modifié garderait son ancienne image. */
+    const aJour =
+      !REFAIRE &&
+      sorties.every(
+        (s) => existsSync(s) && statSync(chemin).mtimeMs <= statSync(s).mtimeMs
+      );
+
+    if (aJour) {
+      // On repart du dérivé : le scan d'origine n'est même pas ouvert.
+      const petit = sorties[0];
+      const m = await sharp(petit).metadata();
+      const apercu = await sharp(petit)
+        .resize({ width: 20, height: 20, fit: 'inside' })
+        .webp({ quality: 45 })
+        .toBuffer();
+      for (const s of sorties) sortant += statSync(s).size;
+      manifeste[id] = {
+        largeur: m.width,
+        hauteur: m.height,
+        flou: `data:image/webp;base64,${apercu.toString('base64')}`,
+      };
+      intacts++;
+      return;
+    }
 
     const ouvrir = () => {
       const s = sharp(chemin, { limitInputPixels: 1e9 }).rotate();
@@ -119,17 +149,16 @@ async function convertirImages() {
     const { info } = await ouvrir().raw().toBuffer({ resolveWithObject: true });
     const entree = { largeur: info.width, hauteur: info.height };
 
-    for (const { suffixe, max, quality } of TAILLES) {
-      const sortie = resolve(DEST_IMAGES, `${id}-${suffixe}.webp`);
-      if (REFAIRE || !existsSync(sortie)) {
-        const cote = Math.min(max, Math.max(info.width, info.height));
-        await ouvrir()
-          .resize({ width: cote, height: cote, fit: 'inside', withoutEnlargement: true })
-          .webp({ quality, effort: 5 })
-          .toFile(sortie);
-      }
+    for (const [i, { max, quality }] of TAILLES.entries()) {
+      const sortie = sorties[i];
+      const cote = Math.min(max, Math.max(info.width, info.height));
+      await ouvrir()
+        .resize({ width: cote, height: cote, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality, effort: 5 })
+        .toFile(sortie);
       sortant += statSync(sortie).size;
     }
+    refaits.push(id);
 
     // vignette de 20 px, affichée floue le temps du chargement
     const flou = await ouvrir().resize({ width: 20, height: 20, fit: 'inside' }).webp({ quality: 45 }).toBuffer();
@@ -153,7 +182,12 @@ async function convertirImages() {
   );
 
   const mo = (n) => (n / 1024 / 1024).toFixed(1) + ' Mo';
-  console.log(`✓ ${faits} images · ${mo(entrant)} → ${mo(sortant)}`);
+  if (refaits.length) {
+    console.log(`↻ ${refaits.length} converties : ${refaits.sort().join(' ')}`);
+  }
+  console.log(
+    `✓ ${refaits.length + intacts} images (${intacts} déjà à jour) · ${mo(entrant)} → ${mo(sortant)}`
+  );
   return manifeste;
 }
 
@@ -421,5 +455,28 @@ writeFileSync(
 );
 
 console.log(`✓ ${donnees.nombreCollections} collections · ${donnees.nombreOeuvres} œuvres → data.js`);
+
+/* Contrôle : les proportions du scan doivent correspondre aux dimensions
+   notées au classeur. Quand elles s'en écartent beaucoup, c'est presque
+   toujours l'un de ces deux cas :
+     — le scan réunit plusieurs pièces (deux tondeaux l'un sur l'autre) ;
+     — la hauteur et la largeur ont été interverties dans le classeur.
+   Dans les deux cas l'œuvre s'affiche à une taille fausse en échelle
+   réelle. On signale, on ne corrige pas : seule l'artiste sait. */
+const discordances = donnees.collections
+  .flatMap((c) => c.oeuvres)
+  .filter((o) => o.hauteurCm && o.largeurCm)
+  .map((o) => ({ o, facteur: o.rapport / (o.largeurCm / o.hauteurCm) }))
+  .filter(({ facteur }) => facteur > 1.6 || facteur < 1 / 1.6);
+
+if (discordances.length) {
+  console.warn(
+    `\n⚠  ${discordances.length} œuvres dont l'image ne correspond pas aux dimensions notées :`
+  );
+  for (const { o, facteur } of discordances) {
+    console.warn(`   ${o.id.padEnd(4)} ${(o.dimensions ?? '').padEnd(16)} image ${facteur > 1 ? 'plus large' : 'plus haute'} que prévu (×${facteur.toFixed(2)})`);
+  }
+  console.warn("   → dimensions à corriger au classeur, ou scan à découper.\n");
+}
 const sansImage = donnees.collections.flatMap((c) => c.oeuvres).filter((o) => !manifeste[o.id]).length;
 if (sansImage) console.warn(`⚠  ${sansImage} œuvres sans image`);

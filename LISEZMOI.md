@@ -61,7 +61,12 @@ Website marianne marti/
 
 3. Recharger la page.
 
-L'outil ne reconvertit que les images nouvelles. Deux raccourcis :
+L'outil ne reconvertit que ce qui a bougé : un scan **nouveau ou
+retouché depuis la dernière fois** (il compare les dates de
+modification). Les autres ne sont même pas rouverts. Retoucher dix
+tableaux prend donc quelques secondes, pas dix minutes.
+
+Deux raccourcis :
 
 - `node outils/ingest.mjs --donnees` — recalcule seulement `data.js`
   (quelques secondes ; à utiliser quand seul le classeur a changé) ;
@@ -208,3 +213,23 @@ occupent au plus 540 px.
 où figure la note « je ne connais pas les tailles »). Faute de mieux, on
 leur donne 60 cm — `HAUTEUR_INCONNUE`, en haut de `mur.js`. Leur fiche
 indique bien « Dimensions non communiquées ».
+
+### L'avertissement « l'image ne correspond pas aux dimensions »
+
+À chaque passage, l'outil compare les proportions de chaque scan aux
+dimensions notées au classeur, et signale les écarts importants —
+**29 œuvres aujourd'hui**. Deux causes, toujours :
+
+- **le scan réunit plusieurs pièces.** Les cinq tondeaux de « Près de
+  noix » sont photographiés deux par deux, l'un au-dessus de l'autre :
+  l'image est deux fois plus haute que le Ø 15 cm annoncé, et s'affiche
+  donc deux fois trop petite. Idem pour « Papillons » et « Hybiscus ».
+- **la hauteur et la largeur ont été interverties** au classeur. « Elle,
+  Lui, Eux » G est noté 120 × 160 cm alors que l'image est plus haute que
+  large.
+
+L'outil ne corrige rien de lui-même : il n'y a pas moyen de deviner
+laquelle des deux valeurs est la bonne. À reprendre au classeur, ou en
+découpant les scans groupés en une image par œuvre. Tant que ce n'est pas
+fait, ces 29 œuvres s'affichent à une taille fausse **en échelle réelle
+seulement** — la bascule éteinte, elles sont correctes.
