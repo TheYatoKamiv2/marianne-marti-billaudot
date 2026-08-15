@@ -342,7 +342,6 @@ function oeuvre(collection, rang) {
     e(
       'figcaption',
       {},
-      e('div', { class: 'lettre', texte: o.lettre }),
       e('div', {
         class: 'mono detail',
         texte: `${o.dimensions ? o.dimensions + ' · ' : ''}${o.annee}`,

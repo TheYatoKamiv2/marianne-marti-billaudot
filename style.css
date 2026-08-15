@@ -374,15 +374,8 @@ body::before {
   opacity: 1;
   transform: none;
 }
-.oeuvre .lettre {
-  font-family: var(--titre);
-  font-style: italic;
-  font-size: 17px;
-  line-height: 1;
-}
 .oeuvre .detail {
   color: rgba(var(--encre-rgb), 0.6);
-  margin-top: 6px;
 }
 .vendu {
   color: var(--accent);
