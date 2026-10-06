@@ -732,12 +732,13 @@ body::before {
     transform: translateX(0);
   }
   50% {
-    transform: translateX(7px);
+    transform: translateX(4px);
   }
 }
 .indice {
   display: inline-block;
-  animation: glisse 1.7s ease-in-out infinite;
+  /* un souffle lent, quelques fois, puis le repos */
+  animation: glisse 3.6s ease-in-out 4;
 }
 
 /* ─── petits écrans ───────────────────────────────────────────── */
