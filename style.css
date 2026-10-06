@@ -212,21 +212,19 @@ body::before {
   margin: 0 0 15px;
   break-inside: avoid; /* pas de paragraphe coupé en deux colonnes */
 }
-/* le portrait est accroché comme les œuvres, même carton, même ombre */
+/* le portrait est détouré : il se pose sur le mur comme les œuvres,
+   sans cadre, avec la même ombre */
 .portrait {
   flex: 0 0 auto;
   margin: 0;
-  padding: 14px;
-  background: var(--carton);
-  box-shadow: 0 30px 50px -28px rgba(60, 44, 24, 0.75), 0 0 0 1px rgba(var(--encre-rgb), 0.09);
   transform: translateY(-16px);
 }
 .portrait img {
   display: block;
   height: calc(var(--unite) * 1.12);
   width: auto;
-  aspect-ratio: 0.8;
-  object-fit: cover;
+  filter: drop-shadow(0 2px 2px rgba(60, 44, 24, 0.22))
+    drop-shadow(0 20px 26px rgba(60, 44, 24, 0.24));
 }
 
 /* ─── cartel de collection ────────────────────────────────────── */
@@ -810,9 +808,6 @@ body::before {
   .bio::-webkit-scrollbar-thumb {
     background: var(--accent);
     border-radius: 3px;
-  }
-  .portrait {
-    padding: 10px;
   }
   .portrait img {
     height: calc(var(--unite) * 0.74);

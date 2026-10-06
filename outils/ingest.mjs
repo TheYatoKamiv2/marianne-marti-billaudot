@@ -40,6 +40,7 @@ const REFAIRE = process.argv.includes('--refaire');
    Monter la valeur si le visage est trop haut, la baisser sinon. */
 const PORTRAIT = {
   source: process.env.PORTRAIT_PATH ?? resolve(SITE, '..', 'photo_profil.jpeg'),
+  detouree: resolve(SITE, '..', 'photo_profil_detouree.png'),
   sortie: resolve(SITE, 'portrait.webp'),
   rapport: 0.8,
   cadrage: 0.6,
@@ -185,6 +186,18 @@ async function convertirImages() {
 
 // ══ 1 bis. le portrait ══════════════════════════════════════════════
 async function convertirPortrait() {
+  /* Si une version détourée (fond transparent) existe à côté de la photo,
+     on l'utilise telle quelle : bords vides retirés, pas de recadrage, la
+     personne se pose sur le mur comme les œuvres. */
+  if (existsSync(PORTRAIT.detouree)) {
+    await sharp(PORTRAIT.detouree)
+      .trim({ threshold: 0 })
+      .resize({ width: PORTRAIT.largeur, withoutEnlargement: true })
+      .webp({ quality: PORTRAIT.quality, alphaQuality: 95 })
+      .toFile(PORTRAIT.sortie);
+    console.log(`✓ portrait détouré → ${basename(PORTRAIT.sortie)} (${(statSync(PORTRAIT.sortie).size / 1024).toFixed(0)} ko)`);
+    return;
+  }
   if (!existsSync(PORTRAIT.source)) {
     console.warn(`⚠  portrait introuvable : ${PORTRAIT.source}`);
     return;
