@@ -96,12 +96,16 @@ Si le visage tombe trop haut ou trop bas dans le cadre, ajuster
 `PORTRAIT.cadrage` en haut de `outils/ingest.mjs` : `0` cale le cadrage
 tout en haut de la photo, `1` tout en bas, `0.6` actuellement.
 
-### Deux réglages dans `outils/ingest.mjs`
+### Collections : le classeur fait foi
 
-- `REGROUPEMENTS` — les collections réunies en une seule, comme demandé
-  dans la colonne AUTRE du classeur (« tu peux regrouper les 3 Diplôme en
-  un seul », « … les 3 motifs … »). Supprimer une ligne pour les séparer
-  de nouveau.
+Une collection du site, c'est un **N°COLLECTION** de la colonne A, ni plus
+ni moins : aucun regroupement. Les trois « Diplôme » et les trois « motifs »
+restent séparés malgré la remarque de la colonne AUTRE, et « 4 » et
+« 4(Bis) » (les deux jardins) sont deux collections. Le numéro affiché sur
+le mur est celui du classeur. Il y en a **43**.
+
+### Un réglage dans `outils/ingest.mjs`
+
 - `NOTES_INTERNES` — les remarques du classeur qui s'adressent au
   webmestre et ne doivent jamais s'afficher sur le site.
 
@@ -144,7 +148,7 @@ En ajoutant beaucoup d'œuvres, deux solutions :
 - **Barre de défilement**, **glisser** à la souris, **molette**, ou
   **← →** au clavier (avec `Maj` pour aller plus vite, `Début` / `Fin`
   pour les extrémités).
-- **Sommaire** : la liste des 39 collections, avec un champ de recherche.
+- **Sommaire** : la liste des 43 collections, avec un champ de recherche.
   C'est le seul endroit qui déplace volontairement le regard, puisqu'on
   demande explicitement à aller quelque part.
 - **Échap** replie la collection ouverte, ferme la fiche ou le sommaire.
@@ -193,21 +197,16 @@ Changer l'adresse : `textes.js`, ligne `email`.
 
 ## L'échelle des œuvres
 
-En bas de l'écran, le bouton **Échelle réelle** commande la taille
-d'accrochage :
-
-- **allumé** (par défaut) : chaque œuvre occupe la hauteur que lui donne
-  le classeur. Un diplôme de 195 cm écrase un dessin de 20 cm, comme sur
-  une vraie cimaise. Les polyptyques comptent en entier — « 3x60 » vaut
-  180 cm de large.
-- **éteint** : toutes les œuvres à la même hauteur, plus commode pour
-  parcourir une collection.
-
-Le choix est retenu d'une visite à l'autre.
+Les œuvres sont **toujours** à leur taille réelle, page de garde comprise :
+chaque œuvre occupe la hauteur que lui donne le classeur. Un diplôme de
+195 cm écrase un dessin de 20 cm, comme sur une vraie cimaise. Les
+polyptyques comptent en entier — « 3x60 » vaut 180 cm de large. Il n'y a
+ni bouton ni barre de progression en bas de l'écran : seule la barre de
+défilement du navigateur situe le visiteur.
 
 L'échelle elle-même se règle dans `style.css`, variable `--cm` : elle dit
 combien de pixels vaut un centimètre. Par défaut, deux mètres de haut
-occupent au plus 540 px.
+occupent au plus 680 px.
 
 **19 œuvres sur 236 n'ont aucune dimension au classeur** (la collection
 où figure la note « je ne connais pas les tailles »). Faute de mieux, on
@@ -231,5 +230,4 @@ dimensions notées au classeur, et signale les écarts importants —
 L'outil ne corrige rien de lui-même : il n'y a pas moyen de deviner
 laquelle des deux valeurs est la bonne. À reprendre au classeur, ou en
 découpant les scans groupés en une image par œuvre. Tant que ce n'est pas
-fait, ces 29 œuvres s'affichent à une taille fausse **en échelle réelle
-seulement** — la bascule éteinte, elles sont correctes.
+fait, ces 29 œuvres s'affichent à une taille fausse.

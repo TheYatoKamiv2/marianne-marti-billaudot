@@ -65,17 +65,9 @@ const CONCURRENCE = 4;
    Mettre à false pour garder les scans tels quels. */
 const ROGNER_TRANSPARENCE = true;
 
-/* ------------------------------------------------------------------ *
- * Regroupements demandés par l'artiste dans la colonne AUTRE :
- *   « tu peux regrouper les 3 Diplôme en un seul »
- *   « tu peux regroupes les 3 motifs en un seul »
- * Pour dégrouper, supprimez la ligne correspondante.
- * Les fichiers images gardent leur numéro d'origine (1B, 2C, 6D…).
- * ------------------------------------------------------------------ */
-const REGROUPEMENTS = [
-  { garde: '1', absorbe: ['2', '3'], titre: 'Diplôme, Beaux-Arts de Paris' },
-  { garde: '5', absorbe: ['6', '7'], titre: 'Les motifs' },
-];
+/* Une collection du site = un N°COLLECTION du classeur, ni plus ni moins.
+   Le classeur fait foi : on ne regroupe plus rien, même quand la colonne
+   AUTRE le suggère (« tu peux regrouper les 3 Diplôme… », les 3 motifs). */
 
 /* Notes de la feuille qui s'adressent au webmestre, jamais au public. */
 const NOTES_INTERNES = [
@@ -368,24 +360,9 @@ function construire(lignes, manifeste) {
     });
   }
 
-  // regroupements
-  const parNumero = new Map(brutes.map((c) => [c.numero, c]));
-  for (const { garde, absorbe, titre } of REGROUPEMENTS) {
-    const cible = parNumero.get(garde);
-    if (!cible) continue;
-    if (titre) cible.titre = titre;
-    for (const numero of absorbe) {
-      const source = parNumero.get(numero);
-      if (!source) continue;
-      cible.oeuvres.push(...source.oeuvres);
-      cible.technique ||= source.technique;
-      source.absorbee = true;
-    }
-  }
-
   const collections = brutes
-    .filter((c) => !c.absorbee && c.oeuvres.length)
-    .map((c, i) => {
+    .filter((c) => c.oeuvres.length)
+    .map((c) => {
       // technique la plus fréquente, quand la page de garde n'en donne pas
       const compte = new Map();
       for (const o of c.oeuvres) compte.set(o.technique, (compte.get(o.technique) ?? 0) + 1);
@@ -399,7 +376,8 @@ function construire(lignes, manifeste) {
       return {
         id: identifiant(c.titre) || `collection-${c.numero}`,
         numero: c.numero,
-        rang: String(i + 1).padStart(2, '0'),
+        // le numéro affiché est celui du classeur : « 4 » → 04, « 4(Bis) » → 04 bis
+        rang: c.numero.replace(/^\d+/, (n) => n.padStart(2, '0')).replace(/\s*\(bis\)/i, ' bis'),
         titre: c.titre,
         technique: c.technique || dominante,
         periode: periode(c.oeuvres),

@@ -15,17 +15,13 @@ const textes = TEXTES; // textes.js
 const donnees = DONNEES; // data.js
 const collections = donnees.collections;
 
-/* Les œuvres sont accrochées à leur taille réelle : la hauteur affichée
-   est proportionnelle à la hauteur en centimètres notée dans le classeur
-   (le diamètre, pour un tondeau). L'échelle elle-même — combien de pixels
+/* Les œuvres sont toujours accrochées à leur taille réelle, page de garde
+   comprise : la hauteur affichée est proportionnelle à la hauteur en
+   centimètres notée dans le classeur (le diamètre, pour un tondeau). L'échelle elle-même — combien de pixels
    valent un centimètre — est dans style.css, variable --cm.
    19 œuvres sur 236 n'ont aucune dimension au classeur ; faute de mieux,
    on leur en donne une, honnête et moyenne. */
 const HAUTEUR_INCONNUE = 60;
-
-/* Hauteur, en cm, à laquelle afficher une page de garde repliée : toutes
-   la même, pour que la rangée de collections reste lisible. */
-const HAUTEUR_GARDE = 150;
 
 const vignette = (id) => `tableaux/${id}-md.webp`;
 const grande = (id) => `tableaux/${id}-lg.webp`;
@@ -56,14 +52,6 @@ let ouverte = null; // id de la collection dépliée
 let fiche = null; // { collection, rang }
 const position = { courant: 0, cible: 0, max: 0 };
 
-/* Échelle d'accrochage.
-   « Échelle réelle » : chaque œuvre occupe la hauteur que lui donne le
-   classeur — un 195 cm écrase donc un dessin de 20 cm, comme au mur.
-   Sinon : toutes à la même hauteur, plus commode pour parcourir une
-   collection. Le choix est retenu d'une visite à l'autre. */
-const CLE_ECHELLE = 'mmb-echelle';
-let echelleReelle = localStorage.getItem(CLE_ECHELLE) !== 'uniforme';
-
 const racine = document.getElementById('site');
 const bloque = () => Boolean(fiche || document.querySelector('.sommaire'));
 
@@ -72,51 +60,12 @@ const rail = e('div', { class: 'rail' });
 const scene = e('div', { class: 'scene' }, rail);
 
 const salle = e('div', { class: 'mono salle', texte: 'Entrée' });
-const jauge = e('span');
-const pourcent = e('div', { class: 'mono pourcent', texte: '00 %' });
 
 racine.append(
   enTete(),
   scene,
-  e(
-    'div',
-    { class: 'pied' },
-    salle,
-    e('div', { class: 'piste' }, jauge),
-    basculeEchelle(),
-    pourcent
-  )
+  e('div', { class: 'pied' }, salle)
 );
-
-function basculeEchelle() {
-  const bouton = e('button', {
-    class: 'mono bascule',
-    texte: 'Échelle réelle',
-    title: 'Afficher chaque œuvre à sa taille réelle, d’après les dimensions du classeur',
-  });
-  const appliquer = () => {
-    document.documentElement.dataset.echelle = echelleReelle ? 'reelle' : 'uniforme';
-    bouton.setAttribute('aria-pressed', String(echelleReelle));
-  };
-  bouton.addEventListener('click', () => {
-    // Toutes les largeurs changent d'un coup. Plutôt que d'envoyer le
-    // visiteur ailleurs, on retient la section qu'il a sous les yeux et
-    // on la remet exactement au même endroit de l'écran.
-    const ancre = [...rail.children].find(
-      (el) => el.offsetLeft + el.offsetWidth > scene.scrollLeft
-    );
-    const ecart = ancre ? scene.scrollLeft - ancre.offsetLeft : 0;
-
-    echelleReelle = !echelleReelle;
-    localStorage.setItem(CLE_ECHELLE, echelleReelle ? 'reelle' : 'uniforme');
-    appliquer();
-
-    if (ancre) scene.scrollLeft = ancre.offsetLeft + ecart;
-    surDefilement();
-  });
-  appliquer();
-  return bouton;
-}
 
 function enTete() {
   return e(
@@ -296,7 +245,7 @@ function garde(collection) {
   const premiere = collection.oeuvres[0];
   return e(
     'figure',
-    { class: 'oeuvre', css: { '--hauteur': String(HAUTEUR_GARDE) } },
+    { class: 'oeuvre', css: { '--hauteur': String(premiere.hauteurCm ?? HAUTEUR_INCONNUE) } },
     e(
       'button',
       {
@@ -523,7 +472,7 @@ function majSalle() {
   }
 }
 
-/* Repère du bas : mis à jour au fil du défilement, jamais en continu. */
+/* Repère du bas : la salle courante, mise à jour au fil du défilement. */
 let repeindre = false;
 function surDefilement() {
   if (repeindre) return;
@@ -531,9 +480,6 @@ function surDefilement() {
   requestAnimationFrame(() => {
     repeindre = false;
     mesurer();
-    const part = position.max > 0 ? scene.scrollLeft / position.max : 0;
-    jauge.style.width = `${part * 100}%`;
-    pourcent.textContent = `${String(Math.round(part * 100)).padStart(2, '0')} %`;
     majSalle();
   });
 }

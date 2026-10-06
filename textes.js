@@ -24,7 +24,7 @@ const TEXTES = {
   heroLigne1: 'Herbes, prés,',
   heroLigne2: 'jardins.',
   accroche:
-    '236 œuvres réunies en 39 collections, de 1993 à 2024 — huile sur toile, tondeau de broderie, dessin, aquarelle et photographie.',
+    '236 œuvres réunies en 43 collections, de 1993 à 2024 — huile sur toile, tondeau de broderie, dessin, aquarelle et photographie.',
 
   bio: [
     'Je suis artiste plasticienne, diplômée de l’École des Beaux-Arts de Paris depuis 1995. En 2003, j’ai ouvert mon atelier de peinture et de dessin dans le quartier de Trion, à Lyon, où je travaille et enseigne encore aujourd’hui.',
