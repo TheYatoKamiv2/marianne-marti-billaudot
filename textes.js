@@ -24,7 +24,7 @@ const TEXTES = {
      reviennent dans les titres de collections (Herbes, Près d'herbes,
      Ronds d'herbes, Près du jardin, Grand bouquet, Ronds bouquets…). */
   heroLigne1: 'Herbes, prés,',
-  heroLigne2: 'bouquets.',
+  heroLigne2: 'jardins.',
   accroche:
     '236 œuvres réunies en 39 collections, de 1993 à 2024 — huile sur toile, tondeau de broderie, dessin, aquarelle et photographie.',
 
