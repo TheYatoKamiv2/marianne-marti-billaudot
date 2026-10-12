@@ -153,10 +153,19 @@ En ajoutant beaucoup d'œuvres, deux solutions :
   demande explicitement à aller quelque part.
 - **Échap** replie la collection ouverte, ferme la fiche ou le sommaire.
 
-Déplier ou replier une collection **ne déplace jamais le visiteur** : les
-œuvres sortent du cartel, ou y rentrent, en glissant. Quand une autre
-collection était ouverte, elle se referme discrètement et le défilement
-est corrigé d'autant, pour que rien ne bouge sous les yeux.
+Déplier ou replier une collection **la centre à l'écran** : le mur glisse
+pendant que les œuvres sortent du cartel, ou y rentrent. Une collection plus
+large que l'écran est calée près du bord gauche, cartel visible. Quand une
+autre collection était ouverte, elle se referme discrètement et le
+défilement est corrigé d'autant.
+
+Le défilement est amorti (molette, flèches, sommaire, centrage) : un cran de
+molette fait glisser le mur au lieu de le faire sauter.
+
+**Dedans ou dehors.** La collection ouverte est soulignée d'un filet, du
+cartel à la dernière pièce, et le repère en bas à gauche dit où l'on est :
+« ● Dans la collection » quand le centre de l'écran tombe dedans,
+« ○ Hors collection » ou « ○ Collection repliée » sinon.
 
 Chaque collection a son adresse, que l'on peut partager :
 

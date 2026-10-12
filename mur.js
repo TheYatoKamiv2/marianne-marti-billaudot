@@ -51,6 +51,9 @@ function e(balise, attributs = {}, ...enfants) {
 let ouverte = null; // id de la collection dépliée
 let fiche = null; // { collection, rang }
 const position = { courant: 0, cible: 0, max: 0 };
+/* Le glissement du mur : une seule animation pour la molette, le clavier
+   et tous les déplacements voulus (centrage, sommaire, liens). */
+const defil = { cible: null, pos: 0, dernier: 0, tau: 120, t: 0, limite: 0, raf: 0 };
 
 const racine = document.getElementById('site');
 const bloque = () => Boolean(fiche || document.querySelector('.sommaire'));
@@ -59,7 +62,9 @@ const bloque = () => Boolean(fiche || document.querySelector('.sommaire'));
 const rail = e('div', { class: 'rail' });
 const scene = e('div', { class: 'scene' }, rail);
 
-const salle = e('div', { class: 'mono salle', texte: 'Entrée' });
+const salleEtat = e('span', { class: 'etat', texte: 'Hors collection' });
+const salleNom = e('span', { class: 'nom', texte: 'Entrée' });
+const salle = e('div', { class: 'mono salle', 'data-etat': 'dehors' }, e('span', { class: 'point' }), salleEtat, salleNom);
 
 racine.append(
   enTete(),
@@ -366,6 +371,7 @@ async function plier(collection, ouvrir) {
   boite.classList.remove('efface');
   marquerOuverte(collection, ouvrir);
   const apres = boite.offsetWidth;
+  cadrer(collection); // mesuré ici, section à sa largeur d'arrivée : le mur glisse pendant que la collection s'ouvre
 
   // largeur de départ, puis largeur d'arrivée : la transition fait le reste
   boite.classList.add('plie');
@@ -394,7 +400,7 @@ function replierSansBouger(collection) {
   marquerOuverte(collection, false);
 
   const delta = boite.offsetWidth - avant;
-  if (delta && debut < scene.scrollLeft) scene.scrollLeft += delta;
+  if (delta && debut < scene.scrollLeft) decaler(delta);
 }
 
 function basculer(collection) {
@@ -427,10 +433,19 @@ function appliquerOuverte(id) {
   }
 }
 
-/** Amène une collection près du bord gauche de l'écran. */
+/** Position de défilement qui place la collection au centre de l'écran ;
+    trop large pour l'écran, son cartel est calé près du bord gauche. */
+function cibleCollection(collection) {
+  const section = collection._section;
+  const utile = section.offsetWidth - parseFloat(getComputedStyle(section).paddingRight);
+  if (utile > window.innerWidth * 0.88) return section.offsetLeft - window.innerWidth * 0.07;
+  return section.offsetLeft + utile / 2 - window.innerWidth / 2;
+}
+
+/** Amène une collection au centre de l'écran, en glissant. */
 function cadrer(collection) {
   mesurer();
-  viser(collection._section.offsetLeft - window.innerWidth * 0.07);
+  viser(cibleCollection(collection), true, 190);
 }
 
 // ══ défilement ══════════════════════════════════════════════════════
@@ -441,19 +456,73 @@ function mesurer() {
   position.max = Math.max(0, scene.scrollWidth - scene.clientWidth);
 }
 
-/** Va à la position demandée. `doux` : glissé, sinon immédiat. */
-function viser(x, doux = true) {
+function arreter() {
+  cancelAnimationFrame(defil.raf);
+  defil.raf = 0;
+  defil.cible = null;
+}
+
+/** Décale le mur d'un coup, sans interrompre un glissement en cours. */
+function decaler(delta) {
+  scene.scrollLeft += delta;
+  if (defil.raf) {
+    defil.pos += delta;
+    defil.cible += delta;
+    defil.dernier = scene.scrollLeft;
+  }
+}
+
+function pas(t) {
   mesurer();
-  scene.scrollTo({
-    left: Math.max(0, Math.min(position.max, x)),
-    behavior: doux ? 'smooth' : 'auto',
-  });
+  const dt = Math.min(64, t - defil.t);
+  defil.t = t;
+  // le visiteur a pris la main (barre de défilement, doigt) : on s'efface
+  if (Math.abs(scene.scrollLeft - defil.dernier) > 1.5) return arreter();
+
+  const but = Math.max(0, Math.min(position.max, defil.cible));
+  defil.pos += (but - defil.pos) * (1 - Math.exp(-dt / defil.tau));
+  const arrive = Math.abs(defil.cible - defil.pos) < 0.4;
+  // une cible au-delà de la course actuelle attend que le mur s'agrandisse
+  if (arrive || (t > defil.limite && Math.abs(but - defil.pos) < 0.4)) defil.pos = but;
+  scene.scrollLeft = defil.pos;
+  defil.dernier = scene.scrollLeft;
+  if (defil.pos === but && (arrive || t > defil.limite)) return arreter();
+  defil.raf = requestAnimationFrame(pas);
+}
+
+/** Va à la position demandée. `doux` : glissé, sinon immédiat.
+    `tau` : la durée du glissement, en ms (plus grand = plus lent). */
+function viser(x, doux = true, tau = 150) {
+  mesurer();
+  if (!doux || sansAnimation) {
+    arreter();
+    scene.scrollLeft = Math.max(0, Math.min(position.max, x));
+    return;
+  }
+  defil.cible = x;
+  defil.tau = tau;
+  defil.limite = performance.now() + 1500;
+  if (!defil.raf) {
+    defil.t = performance.now();
+    defil.pos = scene.scrollLeft;
+    defil.dernier = scene.scrollLeft;
+    defil.raf = requestAnimationFrame(pas);
+  }
 }
 
 let derniereSalle = '';
 function majSalle() {
-  // Le regard se pose au premier tiers, pas au milieu : sur une cimaise
-  // horizontale, c'est la section qui vient d'arriver qui compte.
+  // Dedans : le centre de l'écran tombe dans la collection ouverte.
+  const ouv = collections.find((c) => c.id === ouverte);
+  if (ouv) {
+    const r = ouv._section.getBoundingClientRect();
+    const fin = r.right - parseFloat(getComputedStyle(ouv._section).paddingRight);
+    const centre = window.innerWidth / 2;
+    if (centre >= r.left && centre <= fin) return afficherSalle('dedans', 'Dans la collection', `${ouv.rang} · ${ouv.titre}`);
+  }
+
+  // Dehors : le regard se pose au premier tiers, pas au milieu — sur une
+  // cimaise horizontale, c'est la section qui vient d'arriver qui compte.
   const repere = window.innerWidth * 0.33;
   let meilleure = null;
   let ecart = Infinity;
@@ -463,13 +532,21 @@ function majSalle() {
     const d = Math.abs(r.left + r.width / 2 - repere);
     if (d < ecart) {
       ecart = d;
-      meilleure = el.dataset.salle;
+      meilleure = el;
     }
   }
-  if (meilleure && meilleure !== derniereSalle) {
-    derniereSalle = meilleure;
-    salle.textContent = meilleure;
-  }
+  if (!meilleure) return;
+  const replie = meilleure.classList.contains('cartel');
+  afficherSalle(replie ? 'repliee' : 'dehors', replie ? 'Collection repliée' : 'Hors collection', meilleure.dataset.salle);
+}
+
+function afficherSalle(etat, libelle, nom) {
+  const cle = `${etat}|${nom}`;
+  if (cle === derniereSalle) return;
+  derniereSalle = cle;
+  salle.dataset.etat = etat;
+  salleEtat.textContent = libelle;
+  salleNom.textContent = nom;
 }
 
 /* Repère du bas : la salle courante, mise à jour au fil du défilement. */
@@ -493,7 +570,10 @@ scene.addEventListener(
     const d = Math.abs(ev.deltaY) > Math.abs(ev.deltaX) ? ev.deltaY : ev.deltaX;
     if (!d) return;
     ev.preventDefault();
-    scene.scrollLeft += d * 1.15;
+    // un cran de molette fait glisser le mur au lieu de le faire sauter
+    const px = ev.deltaMode === 1 ? d * 32 : d;
+    mesurer();
+    viser(Math.max(0, Math.min(position.max, (defil.cible ?? scene.scrollLeft) + px * 1.15)), true, 110);
   },
   { passive: false }
 );
@@ -506,6 +586,7 @@ let parcouru = 0;
 scene.addEventListener('pointerdown', (ev) => {
   // Au doigt, le navigateur fait déjà défiler : on ne s'en mêle pas.
   if (bloque() || ev.button === 2 || ev.pointerType === 'touch') return;
+  arreter();
   tire = true;
   parcouru = 0;
   departX = ev.clientX;
@@ -537,9 +618,10 @@ addEventListener('pointercancel', relacher);
 
 addEventListener('keydown', (ev) => {
   if (fiche || document.querySelector('.sommaire')) return; // ces vues gèrent leurs touches
-  const pas = ev.shiftKey ? 1400 : 460;
-  if (ev.key === 'ArrowRight') viser(scene.scrollLeft + pas);
-  else if (ev.key === 'ArrowLeft') viser(scene.scrollLeft - pas);
+  const saut = ev.shiftKey ? 1400 : 460;
+  const depart = defil.cible ?? scene.scrollLeft;
+  if (ev.key === 'ArrowRight') viser(depart + saut, true, 130);
+  else if (ev.key === 'ArrowLeft') viser(depart - saut, true, 130);
   else if (ev.key === 'Home') viser(0);
   else if (ev.key === 'End') viser(position.max);
   else if (ev.key === 'Escape' && ouverte) {

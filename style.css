@@ -235,6 +235,31 @@ body::before {
   align-items: center;
   gap: 4.5vw;
   padding-right: 8vw;
+  position: relative;
+}
+/* La collection ouverte est bornée : un filet sous ses œuvres, de son
+   cartel à sa dernière pièce, avec un repère à chaque bout. On sait
+   ainsi quand on y est, et quand on en sort. */
+.collection::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 8vw;
+  bottom: 74px;
+  height: 7px;
+  border: 0 solid var(--accent);
+  border-left-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+.collection.ouverte::after {
+  opacity: 0.8;
+}
+.collection.ouverte .cartel {
+  border-color: var(--accent);
 }
 
 .cartel {
@@ -432,11 +457,37 @@ body::before {
   pointer-events: none;
 }
 .pied .salle {
-  color: var(--accent);
+  color: rgba(var(--encre-rgb), 0.55);
   white-space: nowrap;
-  max-width: 34vw;
+  max-width: 70vw;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color 0.3s;
+}
+.salle .point {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  transition: background 0.3s;
+}
+.salle .nom {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* dedans : point plein et couleur d'accent ; dehors : point creux */
+.salle[data-etat='dedans'] {
+  color: var(--accent);
+}
+.salle[data-etat='dedans'] .point {
+  background: var(--accent);
+}
+.salle[data-etat='dedans'] .nom {
+  color: var(--encre);
 }
 
 /* ─── sommaire ────────────────────────────────────────────────── */
@@ -846,7 +897,10 @@ body::before {
     letter-spacing: 0.08em;
   }
   .pied .salle {
-    max-width: 34vw;
+    max-width: 92vw;
+  }
+  .salle .etat {
+    display: none;
   }
 }
 
